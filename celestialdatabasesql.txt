@@ -1,0 +1,121 @@
+CREATE DATABASE universe;
+
+\c universe
+
+CREATE TABLE galaxy(); CREATE TABLE star(); CREATE TABLE planet(); CREATE TABLE moon(); CREATE TABLE comet();
+
+ALTER TABLE galaxy ADD COLUMN name VARCHAR(60); ALTER TABLE star ADD COLUMN name VARCHAR(60);
+ALTER TABLE moon ADD COLUMN name VARCHAR(60); ALTER TABLE planet ADD COLUMN name VARCHAR(60);
+ALTER TABLE comet ADD COLUMN name VARCHAR(60);
+
+ALTER TABLE galaxy ADD COLUMN galaxy_id SERIAL PRIMARY KEY; ALTER TABLE star ADD COLUMN star_id SERIAL PRIMARY KEY;
+ALTER TABLE planet ADD COLUMN planet_id SERIAL PRIMARY KEY; ALTER TABLE moon ADD COLUMN moon_id SERIAL PRIMARY KEY;
+ALTER TABLE comet ADD COLUMN comet_id SERIAL PRIMARY KEY;
+
+ALTER TABLE galaxy ALTER COLUMN name SET NOT NULL;
+ALTER TABLE star ALTER COLUMN name SET NOT NULL;
+ALTER TABLE moon ALTER COLUMN name SET NOT NULL;
+ALTER TABLE planet ALTER COLUMN name SET NOT NULL;
+ALTER TABLE comet ALTER COLUMN name SET NOT NULL;
+
+ALTER TABLE star ADD CONSTRAINT star_name UNIQUE(name);
+ALTER TABLE galaxy ADD CONSTRAINT galaxy_name UNIQUE(name);
+ALTER TABLE moon ADD CONSTRAINT moon_name UNIQUE(name);
+ALTER TABLE comet ADD CONSTRAINT comet_name UNIQUE(name);
+ALTER TABLE planet ADD CONSTRAINT planet_name UNIQUE(name);
+
+galaxy():
+ALTER TABLE galaxy ADD COLUMN type VARCHAR(30);
+ALTER TABLE galaxy ADD COLUMN "estimated_number_of_stars" BIGINT;
+ALTER TABLE galaxy ADD COLUMN "diameter_in_light_years" INT;
+
+INSERT INTO galaxy(name, type, "estimated_number_of_stars", "diameter_in_light_years") 
+VALUES('Milky Way', 'Spiral', 100000000000, 87400),
+('Large Magellanic Cloud', 'Irregular', 20000000000, 32200),
+('Andromeda', 'Spiral', 1000000000000, 152000),
+('Pinwheel Galaxy', 'Spiral', 1000000000000, 152000),
+('Sombrero Galaxy', 'Spiral', 100000000000, 94900), 
+('Whirlpool Galaxy', 'Spiral', 100000000000, 76900), 
+('Virgo A', 'Elliptical', 1000000000000, 132000), 
+('Spindle Galaxy', 'Lenticular', 100000000000, 76000);
+
+star():
+ALTER TABLE star ADD COLUMN solo_star_system BOOL;
+ALTER TABLE star ADD COLUMN "surface_temperature (K)" INT;
+ALTER TABLE star ADD COLUMN color_class TEXT;
+ALTER TABLE star ADD COLUMN galaxy_name TEXT;
+
+VALUES
+INSERT INTO star(name, galaxy_name, color_class, "surface_temperature (K)", solo_star_system) 
+VALUES('Sun', 'Milky Way', 'G', 5772, True),
+('S Doradus', 'Large Magellanic Cloud', 'O', 8500, False),
+('Alpha Centauri A', 'Milky Way', 'G', 5790, False),
+('Sirius A', 'Milky Way', 'A', 9940, False),
+('Vega', 'Milky Way', 'A', 9602, True),
+('Spica A', 'Milky Way', 'B', 22400, False),
+('Alpheratz A', 'Milky Way', 'B', 11950, False), 
+('SN 1987A', 'Large Magellanic Cloud', 'B', 25000, False)
+('TRAPPIST-1', 'Milky Way', 'M', True);
+
+planet():
+ALTER TABLE planet ADD COLUMN star_name VARCHAR(60);
+ALTER TABLE planet ADD COLUMN "surface_temperature_approx (K)" NUMERIC; 
+ALTER TABLE planet ADD COLUMN "orbit (AU)" NUMERIC;
+
+
+INSERT INTO planet(name, star_name, "surface_temperature_approx (K)", "orbit (AU)") 
+VALUES('Mercury', 'Sun', 340, 0.39),
+('Venus', 'Sun', 737, 0.72),
+('Earth', 'Sun', 288, 1),
+('Mars', 'Sun', 210, 1.52),
+('Jupiter', 'Sun', 125, 5.20),
+('Saturn', 'Sun', 95, 9.58),
+('Uranus', 'Sun', 59, 19.18),
+('Neptune', 'Sun', 59, 30.07),
+('TRAPPIST-1b', 'TRAPPIST-1', 650, 0.011), 
+('TRAPPIST-1c', 'TRAPPIST-1', 550, 0.015), 
+('TRAPPIST-1d', 'TRAPPIST-1', 450, 0.022), 
+('TRAPPIST-1e', 'TRAPPIST-1', 350, 0.028),
+('TRAPPIST-1f', 'TRAPPIST-1', 325, 0.037);
+
+moon():
+ALTER TABLE moon ADD COLUMN associated_planet VARCHAR(60);
+ALTER TABLE moon ADD COLUMN tidally_locked BOOL;
+ALTER TABLE moon ADD COLUMN orbit_earth_days NUMERIC;
+
+INSERT INTO moon(name, associated_planet, tidally_locked, orbit_earth_days)
+VALUES('Moon', 'Earth', True, 27), ('Phobos', 'Mars', True, 0.32),
+('Deimos', 'Mars', True, 1.26), ('Io', 'Jupiter', True, 1.77), 
+('Europa', 'Jupiter', True, 3.55), ('Ganymede', 'Jupiter', True, 7.15),
+('Callisto', 'Jupiter', True, 16.69), ('Titan', 'Saturn', True, 15.94),
+('Enceladus', 'Saturn', True, 1.37), ('Mimas', 'Saturn', True, 0.94),
+('Iapetus', 'Saturn', True, 79.32), ('Rhea', 'Saturn', True, 4.52),
+('Dione', 'Saturn', True, 2.74), ('Tethys', 'Saturn', True, 1.89),
+('Hyperion', 'Saturn', False, 21.28), ('Phoebe', 'Saturn', False, 550.48),
+('Titania', 'Uranus', True, 8.71), ('Umbriel', 'Uranus', True, 4.14),
+('Triton', 'Neptune', True, 5.88), ('Proteus', 'Neptune', True, 1.12);
+
+comet():
+ALTER TABLE comet ADD COLUMN orbital_period NUMERIC;
+ALTER TABLE comet ADD COLUMN discovery_year INT;
+ALTER TABLE comet ADD COLUMN discovered_by TEXT;
+
+INSERT INTO comet(name, orbital_period, discovery_year, discovered_by)
+VALUES('Halley', 74.7, 1758, 'Edmond Halley'), 
+('NEOWISE', 4500, 2020, 'NEOWISE'), ('Encke', 3.30, 1786, 'Johann Franz Encke'),
+('Lovejoy', 622, 2011, 'Terry Lovejoy'), ('63P/Wild', 13.21, 1960, 'Paul Wild');
+
+Establishing FOREIGN KEYS:
+star():
+ALTER TABLE star ADD COLUMN galaxy_id INT REFERENCES galaxy(galaxy_id);
+UPDATE star SET galaxy_id = (SELECT galaxy_id FROM galaxy WHERE galaxy.name = star.galaxy_name);
+ALTER TABLE star DROP COLUMN galaxy_name;
+
+planet():
+ALTER TABLE planet ADD COLUMN star_id INT REFERENCES star(star_id);
+UPDATE planet SET star_id = (SELECT star_id FROM star WHERE star.name = planet.star_name);
+ALTER TABLE planet DROP COLUMN star_name;
+
+moon():
+ALTER TABLE moon ADD COLUMN planet_id INT REFERENCES planet(planet_id);
+UPDATE moon SET planet_id = (SELECT planet_id FROM planet WHERE planet.name = moon.associated_planet);
